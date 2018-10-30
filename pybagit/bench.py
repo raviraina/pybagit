@@ -7,4 +7,4 @@ pyb_statement = """
 """
 
 t = timeit.Timer(pyb_statement)
-print "pybagit took %.2f seconds" % (10 * t.timeit(number=10) / 10)
+print("pybagit took %.2f seconds" % (10 * t.timeit(number=10) / 10))

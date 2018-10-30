@@ -35,13 +35,14 @@ import shutil
 import codecs
 import string
 import random
-import urllib
+import urllib.request, urllib.parse, urllib.error
 import re
 
 import time
 
 # import bagit-specific exceptions.
 from pybagit.exceptions import *
+from functools import reduce
 
 
 class BagIt:
@@ -59,10 +60,10 @@ class BagIt:
 
         self._bag              = bag  # bag as passed in. Could be either directory or file name, and may not exist.
         self.extended          = extended  # True if it is an 'extended' bag; False if it is not.
-        self.hash_encoding     = u'sha1'  # default hash encoding. Could also be md5. Should always be lowercase.
+        self.hash_encoding     = 'sha1'  # default hash encoding. Could also be md5. Should always be lowercase.
         self.bag_major_version = 0
         self.bag_minor_version = 97   # default bagit version. Set to the latest approved version.
-        self.tag_file_encoding = u'utf-8'  # default text encoding. always lower case.
+        self.tag_file_encoding = 'utf-8'  # default text encoding. always lower case.
         self.data_directory    = None  # path to the bag data directory
         self.bag_directory     = None  # path to the bag directory
         self.bagit_file        = None  # path to the bagit.txt file
@@ -135,7 +136,7 @@ class BagIt:
         """ Sets the bag checksum algorithm. """
         if algorithm.lower() not in ('md5', 'sha1'):
             raise BagCheckSumNotValid('You must specify either "md5" or "sha1".')
-        self.hash_encoding = unicode(algorithm)
+        self.hash_encoding = str(algorithm)
         self.manifest_file = os.path.join(self.bag_directory, "manifest-{0}.txt".format(self.hash_encoding))
 
     def show_bag_info(self):
@@ -201,20 +202,20 @@ class BagIt:
         # verify the presence of the bagit.txt file
         try:
             codecs.open(self.bagit_file, 'r', self.tag_file_encoding)
-        except Exception, e:
+        except Exception as e:
             errors.append(('bagit.txt', 'bagit.txt file does not exist: {0}'.format(e)))
 
         # verify the presence of the data directory
         try:
             if not os.path.exists(self.data_directory):
                 raise BagIsNotValidError('Not Found')
-        except (BagIsNotValidError, Exception), e:
+        except (BagIsNotValidError, Exception) as e:
             errors.append(('data', 'data directory could not be found: e'.format(e)))
 
         # verify the presence of the manifest-(sha1|md5).txt file
         try:
             codecs.open(self.manifest_file, 'r', self.tag_file_encoding)
-        except Exception, e:
+        except Exception as e:
             errors.append(('manifest-{0}.txt'.format(self.hash_encoding), 'manifest-{0}.txt file does not exist: {1}'.format(self.hash_encoding, e)))
 
         try:
@@ -233,7 +234,7 @@ class BagIt:
                                 errors.append((relpath, 'Incorrect filename or checksum in manifest'))
                         else:
                             errors.append((relpath, 'File is not correct in manifest'))
-        except (BagIsNotValidError, Exception), e:
+        except (BagIsNotValidError, Exception) as e:
             errors.append(('checksum verification', 'Problems verifying the manifest: {0}'.format(e)))
 
         self.bag_errors = errors
@@ -349,11 +350,11 @@ class BagIt:
                     filename = os.path.basename(entry['filename'])
                     if not os.path.exists(dwnlddir):
                         os.makedirs(dwnlddir)
-                    urllib.urlretrieve(entry['url'], os.path.join(dwnlddir, filename))
+                    urllib.request.urlretrieve(entry['url'], os.path.join(dwnlddir, filename))
                 else:
                     # file already downloaded to bag. Continue.
                     continue
-            except Exception, e:
+            except Exception as e:
                 self.bag_errors.append(('fetch', 'URL {0} could not be downloaded {1}'.format(entry['url'], e)))
                 continue
 
@@ -409,10 +410,10 @@ class BagIt:
                 os.mkdir(self._bag)
             else:
                 os.mkdir(os.path.join(current_path, self._bag))
-        except OSError, e:
+        except OSError as e:
             raise BagCouldNotBeCreatedError("Bag Could Not Be Created: {0}".format(e))
             return
-        except Exception, e:
+        except Exception as e:
             raise BagError('Could not create directory {0}').format(os.path.join(current_path, self._bag))
             return
 
@@ -420,9 +421,9 @@ class BagIt:
         self.data_directory = os.path.join(self.bag_directory, 'data')
         os.mkdir(self.data_directory)
 
-        version_id = u"BagIt-Version: {0}.{1}\n".format(self.bag_major_version,
+        version_id = "BagIt-Version: {0}.{1}\n".format(self.bag_major_version,
                                                      self.bag_minor_version)
-        encoding = u"Tag-File-Character-Encoding: {0}\n".format(self.tag_file_encoding.upper())
+        encoding = "Tag-File-Character-Encoding: {0}\n".format(self.tag_file_encoding.upper())
 
         self.bagit_file = os.path.join(self.bag_directory, 'bagit.txt')
         self.manifest_file = os.path.join(self.bag_directory, 'manifest-{0}.txt'.format(self.hash_encoding))
@@ -505,10 +506,10 @@ class BagIt:
         filelist = os.listdir(self.bag_directory)
 
         if len(filelist) > 0:
-            manifest = filter(lambda f: re.match(r"^manifest-(sha1|md5)\.txt", f), filelist)  # search for the right manifest file.
+            manifest = [f for f in filelist if re.match(r"^manifest-(sha1|md5)\.txt", f)]  # search for the right manifest file.
             if manifest:
                 try:
-                    self.hash_encoding = unicode(re.search(r"(?P<encoding>(sha1|md5))", manifest[0]).group('encoding'))
+                    self.hash_encoding = str(re.search(r"(?P<encoding>(sha1|md5))", manifest[0]).group('encoding'))
                     self.manifest_file = os.path.join(self.bag_directory, manifest[0])
                     self._read_manifest_to_dict()
                 except:
@@ -516,7 +517,7 @@ class BagIt:
 
             self.data_directory = os.path.join(self.bag_directory, 'data')
 
-            tmanifest = filter(lambda f: re.match(r"^tagmanifest-(sha1|md5)\.txt", f), filelist)  # search for the right manifest file.
+            tmanifest = [f for f in filelist if re.match(r"^tagmanifest-(sha1|md5)\.txt", f)]  # search for the right manifest file.
             if tmanifest:
                 try:
                     self.tag_manifest_file = os.path.join(self.bag_directory, tmanifest[0])
@@ -672,7 +673,7 @@ class BagIt:
                     key, val = line.split(':', 1)
                     bag_info[key] = val.lstrip().rstrip()
                     prev_key = key
-        except Exception, e:
+        except Exception as e:
             raise BagError('The bag-info.txt file may be malformed. Please re-check it.')
             self.bag_errors('bag-info', 'The bag-info.txt file may be malformed.')
 
@@ -694,7 +695,7 @@ class BagIt:
             contents = self.tag_manifest_contents
 
         mfile = codecs.open(mparse, 'w', self.tag_file_encoding)
-        for k, v in contents.iteritems():
+        for k, v in contents.items():
             # unix pathnames are the only ones acceptable in a manifest file.
             # this will ensure that if we're on Windows, we're still writing
             # unix/style/pathnames, even though the manifest contains windows\style\pathnames.
@@ -702,7 +703,7 @@ class BagIt:
                 k = self._ensure_unix_pathname(k)
 
             # we write this to the manifest reversing the checksum & path.
-            mfile.write(u"{0} {1}\n".format(v, k))
+            mfile.write("{0} {1}\n".format(v, k))
         mfile.close()
 
     def _read_manifest_to_dict(self, mode="d"):
@@ -718,7 +719,7 @@ class BagIt:
 
             *PHEW!* """
 
-        keylen = '40' if self.hash_encoding == u'sha1' else '32'
+        keylen = '40' if self.hash_encoding == 'sha1' else '32'
 
         # ensure we're always getting the latest file.
         self._update_manifest_filenames()

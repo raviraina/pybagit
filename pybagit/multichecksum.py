@@ -32,6 +32,7 @@ import hashlib
 import codecs
 import re
 from pybagit.exceptions import *
+from functools import reduce
 
 # declare a default hashalgorithm
 HASHALG = 'sha1'
@@ -59,10 +60,10 @@ def write_manifest(datadir, encoding, update=False):
 
     mfile = codecs.open(manifest_file, 'wb', encoding)
 
-    for file_, checksum in sorted(checksums.iteritems()):
+    for file_, checksum in sorted(checksums.items()):
         rp = os.path.relpath(file_, bag_root)
         fl = ensure_unix_pathname(rp)
-        mfile.write(u"{0} {1}\n".format(checksum, fl))
+        mfile.write("{0} {1}\n".format(checksum, fl))
 
     mfile.close()
 
@@ -70,7 +71,7 @@ def write_manifest(datadir, encoding, update=False):
 def dirwalk(datadir):
     datafiles = []
 
-    for dirpath, dirnames, filenames in os.walk(u"{0}".format(datadir)):
+    for dirpath, dirnames, filenames in os.walk("{0}".format(datadir)):
         for fn in filenames:
             datafiles.append(os.path.join(dirpath, fn))
     return datafiles

@@ -11,12 +11,12 @@ class VersionTest(unittest.TestCase):
         pass
 
     def test_versions(self):
-        self.assertEquals(self.bag.bag_major_version, 0)
-        self.assertEquals(self.bag.bag_minor_version, 96)
+        self.assertEqual(self.bag.bag_major_version, 0)
+        self.assertEqual(self.bag.bag_minor_version, 96)
         binfo = self.bag.get_bag_info()
-        self.assertEquals(binfo['version'], '0.96')
-        self.assertEquals(binfo['encoding'], 'utf-8')
-        self.assertEquals(binfo['hash'], 'sha1')
+        self.assertEqual(binfo['version'], '0.96')
+        self.assertEqual(binfo['encoding'], 'utf-8')
+        self.assertEqual(binfo['hash'], 'sha1')
 
 
 def suite():

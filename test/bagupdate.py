@@ -16,20 +16,20 @@ class UpdateTest(unittest.TestCase):
 
     def test_full_update(self):
         self.bag.update(full=True)
-        self.assertEquals(len(self.bag.bag_errors), 0)
+        self.assertEqual(len(self.bag.bag_errors), 0)
 
     def test_partial_update(self):
         self.bag.update(full=False)
-        self.assertEquals(len(self.bag.bag_errors), 0)
+        self.assertEqual(len(self.bag.bag_errors), 0)
 
     def test_is_valid(self):
         self.bag.update()
-        self.assertEquals(self.bag.is_valid(), True)
+        self.assertEqual(self.bag.is_valid(), True)
 
     def test_not_valid(self):
         os.remove(self.invalid_bag.manifest_file)
         self.invalid_bag.validate()
-        self.assertEquals(self.invalid_bag.is_valid(), False)
+        self.assertEqual(self.invalid_bag.is_valid(), False)
 
 
 def suite():
