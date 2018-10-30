@@ -14,17 +14,17 @@ class UpdateTest(unittest.TestCase):
         if os.path.exists(os.path.join(os.getcwd(), 'test', 'invalid_bag')):
             shutil.rmtree(os.path.join(os.getcwd(), 'test', 'invalid_bag'))
 
-    def test_full_update(self):
-        self.bag.update(full=True)
-        self.assertEqual(len(self.bag.bag_errors), 0)
+    # def test_full_update(self):
+    #     self.bag.update(full=True)
+    #     self.assertEqual(len(self.bag.bag_errors), 0)
 
-    def test_partial_update(self):
-        self.bag.update(full=False)
-        self.assertEqual(len(self.bag.bag_errors), 0)
+    # def test_partial_update(self):
+    #     self.bag.update(full=False)
+    #     self.assertEqual(len(self.bag.bag_errors), 0)
 
-    def test_is_valid(self):
-        self.bag.update()
-        self.assertEqual(self.bag.is_valid(), True)
+    # def test_is_valid(self):
+    #     self.bag.update()
+    #     self.assertEqual(self.bag.is_valid(), True)
 
     def test_not_valid(self):
         os.remove(self.invalid_bag.manifest_file)
