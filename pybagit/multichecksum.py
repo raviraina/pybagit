@@ -24,18 +24,16 @@ __license__ = """The MIT License
                 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
                 THE SOFTWARE."""
 
-import multiprocessing
-from optparse import OptionParser
+import argparse
 import os
 import sys
 import hashlib
 import codecs
 import re
 from pybagit.exceptions import *
+from functools import reduce
+import concurrent.futures
 
-# declare a default hashalgorithm
-HASHALG = 'sha1'
-ENCODING = "utf-8"
 
 def write_manifest(datadir, encoding, update=False):
     bag_root = os.path.split(os.path.abspath(datadir))[0]
@@ -44,33 +42,31 @@ def write_manifest(datadir, encoding, update=False):
     checksums = dict()
     files_to_checksum = set(dirwalk(datadir))
     if update and os.path.isfile(manifest_file):
-        for line in codecs.open(manifest_file, 'rb', encoding):
-            checksum, file_ = line.strip().split(' ', 1)
+        for line in codecs.open(manifest_file, "rb", encoding):
+            checksum, file_ = line.strip().split(" ", 1)
             full_file = os.path.join(bag_root, file_)
             if full_file in files_to_checksum:
                 files_to_checksum.remove(full_file)
                 checksums[os.path.join(bag_root, file_)] = checksum
 
-    p = multiprocessing.Pool(processes=multiprocessing.cpu_count())
-    result = p.map_async(csumfile, files_to_checksum)
-    checksums.update((k, v) for v, k in result.get())
-    p.close()
-    p.join()
+    open(manifest_file, "w").close()
+    with concurrent.futures.ThreadPoolExecutor(max_workers=8) as execute:
+        results = {execute.submit(csumfile, file): file for file in files_to_checksum}
+        for checksum_pair in concurrent.futures.as_completed(results):
+            (checksum, file_path) = (
+                checksum_pair.result()[0],
+                checksum_pair.result()[1],
+            )
 
-    mfile = codecs.open(manifest_file, 'wb', encoding)
-
-    for file_, checksum in sorted(checksums.iteritems()):
-        rp = os.path.relpath(file_, bag_root)
-        fl = ensure_unix_pathname(rp)
-        mfile.write(u"{0} {1}\n".format(checksum, fl))
-
-    mfile.close()
+            with open(manifest_file, "a") as mfile:
+                file_path = ensure_unix_pathname(os.path.relpath(file_path, bag_root))
+                mfile.write(" ".join([checksum, file_path, "\n"]))
 
 
 def dirwalk(datadir):
     datafiles = []
 
-    for dirpath, dirnames, filenames in os.walk(u"{0}".format(datadir)):
+    for dirpath, dirnames, filenames in os.walk("{0}".format(datadir)):
         for fn in filenames:
             datafiles.append(os.path.join(dirpath, fn))
     return datafiles
@@ -87,10 +83,10 @@ def csumfile(filename):
         m.update(data)
         return m
 
-    fd = open(filename, 'rb')
+    fd = open(filename, "rb")
 
     try:
-        contents = iter(lambda: fd.read(blocksize), "")
+        contents = iter(lambda: fd.read(blocksize), b"")
         m = reduce(__upd, contents, hashalg)
     finally:
         fd.close()
@@ -108,22 +104,21 @@ def ensure_unix_pathname(pathname):
 
 
 if __name__ == "__main__":
-    parser = OptionParser()
-    usage = "%prog [options] arg1 arg2"
-    parser.add_option("-a", "--algorithm", action="store", help="checksum algorithm to use (sha1|md5)")
-    parser.add_option("-c", "--encoding", action="store", help="File encoding to write manifest")
-    parser.add_option("-u", "--update", action="store_true", help="Only update new/removed files")
-    (options, args) = parser.parse_args()
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "-a", "--algorithm", help="checksum algorithm to use (sha1|md5)", type=str
+    )
+    parser.add_argument(
+        "-c", "--encoding", help="File encoding to write manifest", type=str
+    )
+    parser.add_argument(
+        "-d", "--data_dir", help="Folder where resides files to checksum", type=str
+    )
+    parser.add_argument(
+        "--update", help="Only update new/removed files", action="store_true"
+    )
+    args = parser.parse_args()
 
-    if options.algorithm:
-        if not options.algorithm in ('md5', 'sha1'):
-            raise BagCheckSumNotValid('You must specify either "md5" or "sha1" as the checksum algorithm')
-        HASHALG = options.algorithm
-
-    if options.encoding:
-        ENCODING = options.encoding
-
-    if len(args) < 1:
-        parser.error("You must specify a data directory")
-
-    write_manifest(args[0], ENCODING, update=options.update)
+    # ENCODING = args.encoding or "utf-8"
+    HASHALG = args.algorithm or "sha1"
+    write_manifest(args.data_dir, args.encoding, args.update)
