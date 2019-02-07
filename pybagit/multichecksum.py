@@ -33,6 +33,7 @@ import codecs
 import re
 from pybagit.exceptions import *
 from functools import reduce
+import concurrent.futures
 
 # declare a default hashalgorithm
 HASHALG = 'sha1'
@@ -52,21 +53,15 @@ def write_manifest(datadir, encoding, update=False):
                 files_to_checksum.remove(full_file)
                 checksums[os.path.join(bag_root, file_)] = checksum
 
-    p = multiprocessing.Pool(processes=multiprocessing.cpu_count())
-    result = p.map_async(csumfile, files_to_checksum)
-    checksums.update((k, v) for v, k in result.get())
-    p.close()
-    p.join()
+    open(manifest_file, 'w').close()
+    with concurrent.futures.ThreadPoolExecutor(max_workers=8) as execute:
+      results = {execute.submit(csumfile, file): file for file in files_to_checksum}
+      for checksum_pair in concurrent.futures.as_completed(results):
+        (checksum, file_path) = (checksum_pair.result()[0], checksum_pair.result()[1])
 
-    mfile = codecs.open(manifest_file, 'wb', encoding)
-
-    for file_, checksum in sorted(checksums.items()):
-        rp = os.path.relpath(file_, bag_root)
-        fl = ensure_unix_pathname(rp)
-        mfile.write("{0} {1}\n".format(checksum, fl))
-
-    mfile.close()
-
+        with open(manifest_file, 'a') as mfile:
+          file_path = ensure_unix_pathname(os.path.relpath(file_path, bag_root))
+          mfile.write(" ".join([checksum, file_path, '\n']))
 
 def dirwalk(datadir):
     datafiles = []
