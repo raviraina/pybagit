@@ -34,6 +34,7 @@ from pybagit.exceptions import *
 from functools import reduce
 import concurrent.futures
 
+
 def write_manifest(datadir, encoding, update=False):
     bag_root = os.path.split(os.path.abspath(datadir))[0]
     manifest_file = os.path.join(bag_root, "manifest-{0}.txt".format(HASHALG))
@@ -41,22 +42,26 @@ def write_manifest(datadir, encoding, update=False):
     checksums = dict()
     files_to_checksum = set(dirwalk(datadir))
     if update and os.path.isfile(manifest_file):
-        for line in codecs.open(manifest_file, 'rb', encoding):
-            checksum, file_ = line.strip().split(' ', 1)
+        for line in codecs.open(manifest_file, "rb", encoding):
+            checksum, file_ = line.strip().split(" ", 1)
             full_file = os.path.join(bag_root, file_)
             if full_file in files_to_checksum:
                 files_to_checksum.remove(full_file)
                 checksums[os.path.join(bag_root, file_)] = checksum
 
-    open(manifest_file, 'w').close()
+    open(manifest_file, "w").close()
     with concurrent.futures.ThreadPoolExecutor(max_workers=8) as execute:
-      results = {execute.submit(csumfile, file): file for file in files_to_checksum}
-      for checksum_pair in concurrent.futures.as_completed(results):
-        (checksum, file_path) = (checksum_pair.result()[0], checksum_pair.result()[1])
+        results = {execute.submit(csumfile, file): file for file in files_to_checksum}
+        for checksum_pair in concurrent.futures.as_completed(results):
+            (checksum, file_path) = (
+                checksum_pair.result()[0],
+                checksum_pair.result()[1],
+            )
 
-        with open(manifest_file, 'a') as mfile:
-          file_path = ensure_unix_pathname(os.path.relpath(file_path, bag_root))
-          mfile.write(" ".join([checksum, file_path, '\n']))
+            with open(manifest_file, "a") as mfile:
+                file_path = ensure_unix_pathname(os.path.relpath(file_path, bag_root))
+                mfile.write(" ".join([checksum, file_path, "\n"]))
+
 
 def dirwalk(datadir):
     datafiles = []
@@ -78,7 +83,7 @@ def csumfile(filename):
         m.update(data)
         return m
 
-    fd = open(filename, 'rb')
+    fd = open(filename, "rb")
 
     try:
         contents = iter(lambda: fd.read(blocksize), b"")
@@ -100,10 +105,18 @@ def ensure_unix_pathname(pathname):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("-a", "--algorithm", help="checksum algorithm to use (sha1|md5)", type=str )
-    parser.add_argument("-c", "--encoding", help="File encoding to write manifest", type=str )
-    parser.add_argument("-d", "--data_dir", help="Folder where resides files to checksum", type=str)
-    parser.add_argument("--update", help="Only update new/removed files", action="store_true" )
+    parser.add_argument(
+        "-a", "--algorithm", help="checksum algorithm to use (sha1|md5)", type=str
+    )
+    parser.add_argument(
+        "-c", "--encoding", help="File encoding to write manifest", type=str
+    )
+    parser.add_argument(
+        "-d", "--data_dir", help="Folder where resides files to checksum", type=str
+    )
+    parser.add_argument(
+        "--update", help="Only update new/removed files", action="store_true"
+    )
     args = parser.parse_args()
 
     # ENCODING = args.encoding or "utf-8"

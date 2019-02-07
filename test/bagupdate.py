@@ -5,14 +5,13 @@ from pybagit.bagit import BagIt
 
 
 class UpdateTest(unittest.TestCase):
-
     def setUp(self):
-        self.bag = BagIt(os.path.join(os.getcwd(), 'test', 'testbag'))
-        self.invalid_bag = BagIt(os.path.join(os.getcwd(), 'test', 'invalid_bag'))
+        self.bag = BagIt(os.path.join(os.getcwd(), "test", "testbag"))
+        self.invalid_bag = BagIt(os.path.join(os.getcwd(), "test", "invalid_bag"))
 
     def tearDown(self):
-        if os.path.exists(os.path.join(os.getcwd(), 'test', 'invalid_bag')):
-            shutil.rmtree(os.path.join(os.getcwd(), 'test', 'invalid_bag'))
+        if os.path.exists(os.path.join(os.getcwd(), "test", "invalid_bag")):
+            shutil.rmtree(os.path.join(os.getcwd(), "test", "invalid_bag"))
 
     def test_full_update(self):
         self.bag.update(full=True)
@@ -33,5 +32,5 @@ class UpdateTest(unittest.TestCase):
 
 
 def suite():
-    test_suite = unittest.makeSuite(UpdateTest, 'test')
+    test_suite = unittest.makeSuite(UpdateTest, "test")
     return test_suite

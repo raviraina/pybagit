@@ -2,6 +2,7 @@ try:
     from setuptools import setup, find_packages
 except ImportError:
     from ez_setup import use_setuptools
+
     use_setuptools()
     from setuptools import setup, find_packages
 
@@ -49,23 +50,24 @@ easy_install pybagit
 
 
 setup(
-    name = 'pybagit',
-    long_description = longdesc,
-    version = '1.5.3',
-    url = 'http://ahankinson.github.io/pybagit',
-    author = 'Andrew Hankinson',
-    author_email = 'andrew.hankinson@mail.mcgill.ca',
-    license = 'http://www.opensource.org/licenses/mit-license.php',
-    packages = find_packages(exclude=['ez_setup']),
-    classifiers = [ 'Development Status :: 5 - Production/Stable',
-                    'Intended Audience :: Information Technology',
-                    'License :: OSI Approved :: MIT License',
-                    'Operating System :: OS Independent',
-                    'Topic :: Internet',
-                    'Topic :: Software Development :: Libraries',
-                    'Topic :: System :: Archiving :: Packaging'
-                    ],
+    name="pybagit",
+    long_description=longdesc,
+    version="1.5.3",
+    url="http://ahankinson.github.io/pybagit",
+    author="Andrew Hankinson",
+    author_email="andrew.hankinson@mail.mcgill.ca",
+    license="http://www.opensource.org/licenses/mit-license.php",
+    packages=find_packages(exclude=["ez_setup"]),
+    classifiers=[
+        "Development Status :: 5 - Production/Stable",
+        "Intended Audience :: Information Technology",
+        "License :: OSI Approved :: MIT License",
+        "Operating System :: OS Independent",
+        "Topic :: Internet",
+        "Topic :: Software Development :: Libraries",
+        "Topic :: System :: Archiving :: Packaging",
+    ],
     include_package_data=True,
-    description = 'A library for dealing with BagIt packages.',
-    test_suite = 'bagtest'
+    description="A library for dealing with BagIt packages.",
+    test_suite="bagtest",
 )

@@ -28,6 +28,7 @@ __license__ = """The MIT License
 
 class BagError(Exception):
     """ BagIt Errors """
+
     def __init__(self, message):
         self.message = message
 
