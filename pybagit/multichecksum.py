@@ -86,7 +86,7 @@ def csumfile(filename):
     fd = open(filename, 'rb')
 
     try:
-        contents = iter(lambda: fd.read(blocksize), "")
+        contents = iter(lambda: fd.read(blocksize), b"")
         m = reduce(__upd, contents, hashalg)
     finally:
         fd.close()

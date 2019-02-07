@@ -260,11 +260,11 @@ class BagIt:
         for man in datamanifests:
             man = os.path.join(self.bag_directory, man)
             if 'manifest-md5.txt' in man:
-                for line in codecs.open(man, 'rb', encoding=self.tag_file_encoding):
+                for line in codecs.open(man, 'r', encoding=self.tag_file_encoding):
                     hash_, file_ = line.split(' ', 1)
                     md5_hashes[file_] = hash_
             elif 'manifest-sha1.txt' in man:
-                for line in codecs.open(man, 'rb', encoding=self.tag_file_encoding):
+                for line in codecs.open(man, 'r', encoding=self.tag_file_encoding):
                     hash_, file_ = line.split(' ', 1)
                     sha1_hashes[file_] = hash_
 
@@ -470,7 +470,7 @@ class BagIt:
         fd = open(filepath, 'rb')
 
         try:
-            contents = iter(lambda: fd.read(block_size), "")
+            contents = iter(lambda: fd.read(block_size), b"")
             m = reduce(upd, contents, hashalg)
         finally:
             fd.close()
