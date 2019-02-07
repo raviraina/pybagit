@@ -311,7 +311,7 @@ class BagIt:
             self._path_to_multichecksum,
             "-a", self.hash_encoding,
             "-c", self.tag_file_encoding,
-            self.data_directory,
+            "-d", self.data_directory,
         ]
         if not full:
             cmd.append('-u')

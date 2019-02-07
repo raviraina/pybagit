@@ -25,7 +25,7 @@ __license__ = """The MIT License
                 THE SOFTWARE."""
 
 import multiprocessing
-from optparse import OptionParser
+import argparse
 import os
 import sys
 import hashlib
@@ -109,22 +109,11 @@ def ensure_unix_pathname(pathname):
 
 
 if __name__ == "__main__":
-    parser = OptionParser()
-    usage = "%prog [options] arg1 arg2"
-    parser.add_option("-a", "--algorithm", action="store", help="checksum algorithm to use (sha1|md5)")
-    parser.add_option("-c", "--encoding", action="store", help="File encoding to write manifest")
-    parser.add_option("-u", "--update", action="store_true", help="Only update new/removed files")
-    (options, args) = parser.parse_args()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-a", "--algorithm", help="checksum algorithm to use (sha1|md5)", type=str )
+    parser.add_argument("-c", "--encoding", help="File encoding to write manifest", type=str )
+    parser.add_argument("-d", "--data_dir", help="Folder where resides files to checksum", type=str)
+    parser.add_argument("--update", help="Only update new/removed files", action="store_true" )
+    args = parser.parse_args()
 
-    if options.algorithm:
-        if not options.algorithm in ('md5', 'sha1'):
-            raise BagCheckSumNotValid('You must specify either "md5" or "sha1" as the checksum algorithm')
-        HASHALG = options.algorithm
-
-    if options.encoding:
-        ENCODING = options.encoding
-
-    if len(args) < 1:
-        parser.error("You must specify a data directory")
-
-    write_manifest(args[0], ENCODING, update=options.update)
+    write_manifest(args.data_dir, args.encoding, args.update)
