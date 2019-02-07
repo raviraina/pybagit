@@ -314,7 +314,7 @@ class BagIt:
             "-d", self.data_directory,
         ]
         if not full:
-            cmd.append('-u')
+            cmd.append('--update')
         p = subprocess.Popen(cmd, stdin=subprocess.PIPE,
                              stdout=subprocess.PIPE)
 

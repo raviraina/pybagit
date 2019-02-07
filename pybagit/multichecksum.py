@@ -34,10 +34,6 @@ from pybagit.exceptions import *
 from functools import reduce
 import concurrent.futures
 
-# declare a default hashalgorithm
-HASHALG = 'sha1'
-ENCODING = "utf-8"
-
 def write_manifest(datadir, encoding, update=False):
     bag_root = os.path.split(os.path.abspath(datadir))[0]
     manifest_file = os.path.join(bag_root, "manifest-{0}.txt".format(HASHALG))
@@ -110,4 +106,6 @@ if __name__ == "__main__":
     parser.add_argument("--update", help="Only update new/removed files", action="store_true" )
     args = parser.parse_args()
 
+    # ENCODING = args.encoding or "utf-8"
+    HASHALG = args.algorithm or "sha1"
     write_manifest(args.data_dir, args.encoding, args.update)
