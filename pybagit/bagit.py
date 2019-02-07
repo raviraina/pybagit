@@ -201,7 +201,7 @@ class BagIt:
 
         # verify the presence of the bagit.txt file
         try:
-            codecs.open(self.bagit_file, 'r', self.tag_file_encoding)
+            codecs.open(self.bagit_file, 'r', encoding=self.tag_file_encoding)
         except Exception as e:
             errors.append(('bagit.txt', 'bagit.txt file does not exist: {0}'.format(e)))
 
@@ -214,7 +214,7 @@ class BagIt:
 
         # verify the presence of the manifest-(sha1|md5).txt file
         try:
-            codecs.open(self.manifest_file, 'r', self.tag_file_encoding)
+            codecs.open(self.manifest_file, 'r', encoding=self.tag_file_encoding)
         except Exception as e:
             errors.append(('manifest-{0}.txt'.format(self.hash_encoding), 'manifest-{0}.txt file does not exist: {1}'.format(self.hash_encoding, e)))
 
@@ -260,11 +260,11 @@ class BagIt:
         for man in datamanifests:
             man = os.path.join(self.bag_directory, man)
             if 'manifest-md5.txt' in man:
-                for line in codecs.open(man, 'rb', self.tag_file_encoding):
+                for line in codecs.open(man, 'rb', encoding=self.tag_file_encoding):
                     hash_, file_ = line.split(' ', 1)
                     md5_hashes[file_] = hash_
             elif 'manifest-sha1.txt' in man:
-                for line in codecs.open(man, 'rb', self.tag_file_encoding):
+                for line in codecs.open(man, 'rb', encoding=self.tag_file_encoding):
                     hash_, file_ = line.split(' ', 1)
                     sha1_hashes[file_] = hash_
 
@@ -429,29 +429,29 @@ class BagIt:
         self.manifest_file = os.path.join(self.bag_directory, 'manifest-{0}.txt'.format(self.hash_encoding))
 
         bfile_contents = (version_id, encoding)
-        bfile = codecs.open(self.bagit_file, 'w', self.tag_file_encoding)
+        bfile = codecs.open(self.bagit_file, 'w', encoding=self.tag_file_encoding)
         bfile.writelines(bfile_contents)
         bfile.close()
 
         # just create the manifest file. we'll add stuff later.
-        tfile = codecs.open(self.manifest_file, 'w', self.tag_file_encoding)
+        tfile = codecs.open(self.manifest_file, 'w', encoding=self.tag_file_encoding)
         tfile.close()
 
         self._read_manifest_to_dict()  # this should be empty, but we'll do it to ensure consistency.
 
         if self.extended:
             self.tag_manifest_file = os.path.join(self.bag_directory, 'tagmanifest-{0}.txt'.format(self.hash_encoding))
-            tmfile = codecs.open(self.tag_manifest_file, 'w', self.tag_file_encoding)
+            tmfile = codecs.open(self.tag_manifest_file, 'w', encoding=self.tag_file_encoding)
             tmfile.close()
             self._read_manifest_to_dict(mode="t")
 
             self.fetch_file = os.path.join(self.bag_directory, 'fetch.txt')
-            fetchfile = codecs.open(self.fetch_file, 'w', self.tag_file_encoding)
+            fetchfile = codecs.open(self.fetch_file, 'w', encoding=self.tag_file_encoding)
             fetchfile.close()
             self._read_fetch_to_list()
 
             self.baginfo_file = os.path.join(self.bag_directory, 'bag-info.txt')
-            binfofile = codecs.open(self.baginfo_file, 'w', self.tag_file_encoding)
+            binfofile = codecs.open(self.baginfo_file, 'w', encoding=self.tag_file_encoding)
             binfofile.close()
             self._read_baginfo_to_dict()
 
@@ -494,7 +494,7 @@ class BagIt:
 
         try:
             self.bagit_file = os.path.join(self.bag_directory, 'bagit.txt')
-            bfile = codecs.open(self.bagit_file, 'r', self.tag_file_encoding)
+            bfile = codecs.open(self.bagit_file, 'r', encoding=self.tag_file_encoding)
             bfile_contents = bfile.read()
             bfile.close()
 
@@ -620,7 +620,7 @@ class BagIt:
         """ Format:
             URL LENGTH FILENAME = [{'url':'', 'length':'', filename:''},...]
         """
-        ffile = codecs.open(self.fetch_file, 'r', self.tag_file_encoding)
+        ffile = codecs.open(self.fetch_file, 'r', encoding=self.tag_file_encoding)
         fcontents = ffile.readlines()
         ffile.close()
         fetch = []
@@ -642,7 +642,7 @@ class BagIt:
 
             !!! TODO: Calculate actual file length
         """
-        ffile = codecs.open(self.fetch_file, 'w', self.tag_file_encoding)
+        ffile = codecs.open(self.fetch_file, 'w', encoding=self.tag_file_encoding)
         for item in self.fetch_contents:  # fetch_contents is a list, not a dictionary!
             line = "{url} {length} {filename}\n".format(url=item['url'],
                                                         length='-',
@@ -659,7 +659,7 @@ class BagIt:
 
         """
         bag_info = {}
-        bifile = codecs.open(self.baginfo_file, 'r', self.tag_file_encoding)
+        bifile = codecs.open(self.baginfo_file, 'r', encoding=self.tag_file_encoding)
         bicontents = bifile.readlines()
         bifile.close()
 
@@ -694,7 +694,7 @@ class BagIt:
             mparse = self.tag_manifest_file
             contents = self.tag_manifest_contents
 
-        mfile = codecs.open(mparse, 'w', self.tag_file_encoding)
+        mfile = codecs.open(mparse, 'w', encoding=self.tag_file_encoding)
         for k, v in contents.items():
             # unix pathnames are the only ones acceptable in a manifest file.
             # this will ensure that if we're on Windows, we're still writing
@@ -729,7 +729,7 @@ class BagIt:
         elif mode == "t":
             mparse = self.tag_manifest_file
 
-        mfile = codecs.open(mparse, 'r', self.tag_file_encoding)
+        mfile = codecs.open(mparse, 'r', encoding=self.tag_file_encoding)
         mcontents = mfile.readlines()
         mfile.close()
         manifest = {}
