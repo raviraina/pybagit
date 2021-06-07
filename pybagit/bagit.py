@@ -655,11 +655,11 @@ class BagIt:
         tdir = os.path.join(tempfile.mkdtemp(prefix="bagit_"), bagbase)
         if self.bag_compression is None:
             return  # we should never have this, but just in case.
-        elif self.bag_compression is "zip":
+        elif self.bag_compression == "zip":
             zfil = zipfile.ZipFile(self._bag)
             zfil.extractall(tdir)
             zfil.close()
-        elif self.bag_compression is "tgz":
+        elif self.bag_compression == "tgz":
             tfil = tarfile.open(self._bag)
             tfil.extractall(path=tdir)
             tfil.close()
@@ -678,7 +678,7 @@ class BagIt:
         bagname = ".".join((os.path.basename(self.bag_directory), method))
         compressed_file = os.path.join(tdir, bagname)
 
-        if method is "zip":
+        if method == "zip":
             z = zipfile.ZipFile(
                 compressed_file,
                 mode="w",
